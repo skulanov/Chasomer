@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Часомѣ́ръ Московскій</title>
+    <title>Часословъ Московскій</title>
     <style>
-        /* Подключаем шрифт Fedorovsk - стандарт печатной книги */
+        /* Подключаем шрифт Fedorovsk */
         @font-face {
             font-family: 'Fedorovsk';
             src: url('https://cdn.jsdelivr.net/gh/slavonic/fedorovsk@master/Fedorovsk-Regular.ttf') format('truetype');
@@ -13,78 +13,96 @@
         }
 
         body {
-            background-color: #0f0f0f;
-            background-image: radial-gradient(circle, #1a1a1a 0%, #050505 100%);
-            color: #e2c08d; 
+            background-color: #0d0d0d;
+            background-image: radial-gradient(circle, #1a1610 0%, #050505 100%);
+            color: #d4af37;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
             font-family: 'Times New Roman', serif;
+            -webkit-font-smoothing: antialiased;
         }
 
         .clock-card {
             text-align: center;
-            padding: 60px;
-            border: 1px solid rgba(226, 192, 141, 0.3);
-            background: rgba(20, 20, 20, 0.8);
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(226, 192, 141, 0.05);
-            border-radius: 4px;
-            position: relative;
-        }
-
-        /* Декоративные уголки */
-        .clock-card::before, .clock-card::after {
-            content: "♰";
-            position: absolute;
-            font-size: 20px;
-            opacity: 0.5;
-        }
-        .clock-card::before { top: 10px; left: 10px; }
-        .clock-card::after { bottom: 10px; right: 10px; }
-
-        #clock {
-            font-family: 'Fedorovsk', serif;
-            font-size: 210px; /* Увеличили для солидности */
-            line-height: 1.2;
-            margin: 20px 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(226, 192, 141, 0.2);
-            letter-spacing: 5px;
+            padding: 50px 70px;
+            border: 1px solid #4a3c28;
+            background: rgba(15, 15, 15, 0.9);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            border-radius: 2px;
+            /* Фиксированная ширина всей карточки, чтобы она не расширялась */
+            width: 650px; 
         }
 
         .title {
-            font-size: 22px;
+            font-family: 'Fedorovsk', serif;
+            font-size: 24px;
+            color: #8a704a;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
             text-transform: uppercase;
-            letter-spacing: 4px;
-            color: #b38b59;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #b38b59;
+        }
+
+        /* Контейнер для цифр */
+        .clock-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Fedorovsk', serif;
+            font-size: 100px;
+            height: 140px; /* Фиксированная высота, чтобы титло не дергало блок */
+        }
+
+        /* Каждая группа (ЧЧ, ММ, СС) имеет строго фиксированную ширину */
+        .segment {
+            width: 170px; 
+            text-align: center;
             display: inline-block;
-            padding-bottom: 5px;
+            white-space: nowrap;
+        }
+
+        /* Разделитель (двоеточие) тоже в фиксированном блоке */
+        .separator {
+            width: 40px;
+            text-align: center;
+            color: #5c4b32;
+            padding-bottom: 15px; /* Визуальная коррекция двоеточия */
         }
 
         .footer {
-            font-size: 16px;
-            color: #7a6348;
-            margin-top: 20px;
-            font-style: italic;
+            margin-top: 30px;
+            font-size: 14px;
+            color: #5c4b32;
+            letter-spacing: 5px;
+            text-transform: uppercase;
         }
 
-        /* Разделитель (двоеточие) сделаем чуть меньше */
-        .sep {
-            font-size: 0.7em;
-            vertical-align: middle;
-            opacity: 0.6;
+        /* Декоративный элемент */
+        .ornament {
+            color: #5c4b32;
+            font-size: 20px;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
 
     <div class="clock-card">
-        <div class="title">Часомѣ́ръ Московскій</div>
-        <div id="clock">...</div>
-        <div class="footer">by Dima Skulanov 2026</div>
+        <div class="title">Часословъ Московскій</div>
+        <div class="ornament">☩</div>
+        
+        <div class="clock-display">
+            <div id="hours" class="segment"></div>
+            <div class="separator">:</div>
+            <div id="minutes" class="segment"></div>
+            <div class="separator">:</div>
+            <div id="seconds" class="segment"></div>
+        </div>
+
+        <div class="ornament">☩</div>
+        <div class="footer">Москва • Третїй Римъ</div>
     </div>
 
     <script>
@@ -92,10 +110,12 @@
         const tens = { 10: 'і', 20: 'к', 30: 'л', 40: 'м', 50: 'н' };
 
         function toSlavonic(num) {
-            if (num === 0) return 'ѻ'; // Для нуля используем "онъ"
             let res = '';
             
-            if (num >= 11 && num <= 19) {
+            if (num === 0) {
+                res = 'ѻ'; // Ноль как "онъ"
+            } else if (num >= 11 && num <= 19) {
+                // Правило 11-19: единица + і
                 res = units[num % 10] + 'і';
             } else {
                 const t = Math.floor(num / 10) * 10;
@@ -104,8 +124,11 @@
                 if (u > 0) res += units[u];
             }
 
-            // Титло: ставится над второй буквой с конца или над единственной
+            // Титло (◌҃)
+            // В церковнославянском титло ставится над единственной буквой 
+            // или над второй с конца в многобуквенных числах.
             if (res.length > 1) {
+                // Ставим титло над предпоследней буквой для красоты и читаемости
                 return res.slice(0, -1) + '\u0483' + res.slice(-1);
             } else {
                 return res + '\u0483';
@@ -114,18 +137,28 @@
 
         function updateClock() {
             const now = new Date();
-            const options = { timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-            const parts = new Intl.DateTimeFormat('ru-RU', options).formatToParts(now);
+            const options = { 
+                timeZone: 'Europe/Moscow', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit', 
+                hour12: false 
+            };
+            
+            const formatter = new Intl.DateTimeFormat('ru-RU', options);
+            const parts = formatter.formatToParts(now);
             
             const h = parseInt(parts.find(p => p.type === 'hour').value);
             const m = parseInt(parts.find(p => p.type === 'minute').value);
             const s = parseInt(parts.find(p => p.type === 'second').value);
 
-            const sep = '<span class="sep">:</span>';
-            document.getElementById('clock').innerHTML = 
-                `${toSlavonic(h)} ${sep} ${toSlavonic(m)} ${sep} ${toSlavonic(s)}`;
+            // Обновляем каждый блок отдельно, чтобы избежать перерисовки всей строки
+            document.getElementById('hours').textContent = toSlavonic(h);
+            document.getElementById('minutes').textContent = toSlavonic(m);
+            document.getElementById('seconds').textContent = toSlavonic(s);
         }
 
+        // Плавный старт
         setInterval(updateClock, 1000);
         updateClock();
     </script>
