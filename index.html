@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Часословъ Московскій</title>
+    <title>Часомѣръ Московскій</title>
     <style>
         /* Подключаем шрифт Fedorovsk */
         @font-face {
@@ -31,55 +31,58 @@
             border: 1px solid #4a3c28;
             background: rgba(15, 15, 15, 0.9);
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            border-radius: 2px;
-            /* Фиксированная ширина всей карточки, чтобы она не расширялась */
-            width: 650px; 
+            width: 650px; /* Фиксированная ширина рамки */
         }
 
         .title {
             font-family: 'Fedorovsk', serif;
-            font-size: 24px;
+            font-size: 28px;
             color: #8a704a;
-            margin-bottom: 30px;
-            letter-spacing: 2px;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
             text-transform: uppercase;
         }
 
-        /* Контейнер для цифр */
         .clock-display {
             display: flex;
             justify-content: center;
             align-items: center;
             font-family: 'Fedorovsk', serif;
             font-size: 100px;
-            height: 140px; /* Фиксированная высота, чтобы титло не дергало блок */
+            height: 180px; /* Высота с запасом для высокого титло */
         }
 
-        /* Каждая группа (ЧЧ, ММ, СС) имеет строго фиксированную ширину */
         .segment {
-            width: 170px; 
+            width: 170px; /* Фиксированная ширина для значений времени */
             text-align: center;
-            display: inline-block;
-            white-space: nowrap;
         }
 
-        /* Разделитель (двоеточие) тоже в фиксированном блоке */
         .separator {
             width: 40px;
             text-align: center;
             color: #5c4b32;
-            padding-bottom: 15px; /* Визуальная коррекция двоеточия */
+            padding-bottom: 20px; /* Визуальное выравнивание двоеточия */
+        }
+
+        /* Настройка высоты титло */
+        .titlo {
+            display: inline-block;
+            transform: translateY(-18px); /* Поднимаем титло выше */
+            width: 0;
+            margin-left: -0.1em;
+            pointer-events: none;
+            color: #e2c08d;
         }
 
         .footer {
-            margin-top: 30px;
-            font-size: 14px;
+            margin-top: 25px;
+            font-size: 13px;
             color: #5c4b32;
-            letter-spacing: 5px;
-            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-family: Arial, sans-serif;
+            opacity: 0.7;
         }
 
-        /* Декоративный элемент */
         .ornament {
             color: #5c4b32;
             font-size: 20px;
@@ -90,7 +93,7 @@
 <body>
 
     <div class="clock-card">
-        <div class="title">Часословъ Московскій</div>
+        <div class="title">Часомѣръ</div>
         <div class="ornament">☩</div>
         
         <div class="clock-display">
@@ -102,20 +105,24 @@
         </div>
 
         <div class="ornament">☩</div>
-        <div class="footer">Москва • Третїй Римъ</div>
+        <div class="footer">by Dima Skulanov 2026</div>
     </div>
 
     <script>
         const units = { 1: 'а', 2: 'в', 3: 'г', 4: 'д', 5: 'е', 6: 'ѕ', 7: 'з', 8: 'и', 9: 'ѳ' };
         const tens = { 10: 'і', 20: 'к', 30: 'л', 40: 'м', 50: 'н' };
 
+        /**
+         * Конвертация числа в церковнославянскую буквенную систему
+         */
         function toSlavonic(num) {
             let res = '';
+            const titloHtml = '<span class="titlo">\u0483</span>';
             
             if (num === 0) {
-                res = 'ѻ'; // Ноль как "онъ"
+                res = 'ѻ'; // Используем "онъ" для нуля
             } else if (num >= 11 && num <= 19) {
-                // Правило 11-19: единица + і
+                // Правило 11-19: единица на десять
                 res = units[num % 10] + 'і';
             } else {
                 const t = Math.floor(num / 10) * 10;
@@ -124,41 +131,43 @@
                 if (u > 0) res += units[u];
             }
 
-            // Титло (◌҃)
-            // В церковнославянском титло ставится над единственной буквой 
-            // или над второй с конца в многобуквенных числах.
+            // Логика постановки титло:
+            // Если букв несколько, титло обычно ставится над второй с конца.
             if (res.length > 1) {
-                // Ставим титло над предпоследней буквой для красоты и читаемости
-                return res.slice(0, -1) + '\u0483' + res.slice(-1);
+                return res.slice(0, -1) + titloHtml + res.slice(-1);
             } else {
-                return res + '\u0483';
+                return res + titloHtml;
             }
         }
 
         function updateClock() {
-            const now = new Date();
-            const options = { 
-                timeZone: 'Europe/Moscow', 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit', 
-                hour12: false 
-            };
-            
-            const formatter = new Intl.DateTimeFormat('ru-RU', options);
-            const parts = formatter.formatToParts(now);
-            
-            const h = parseInt(parts.find(p => p.type === 'hour').value);
-            const m = parseInt(parts.find(p => p.type === 'minute').value);
-            const s = parseInt(parts.find(p => p.type === 'second').value);
+            try {
+                const now = new Date();
+                const options = { 
+                    timeZone: 'Europe/Moscow', 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    second: '2-digit', 
+                    hour12: false 
+                };
+                
+                const formatter = new Intl.DateTimeFormat('ru-RU', options);
+                const parts = formatter.formatToParts(now);
+                
+                const h = parseInt(parts.find(p => p.type === 'hour').value);
+                const m = parseInt(parts.find(p => p.type === 'minute').value);
+                const s = parseInt(parts.find(p => p.type === 'second').value);
 
-            // Обновляем каждый блок отдельно, чтобы избежать перерисовки всей строки
-            document.getElementById('hours').textContent = toSlavonic(h);
-            document.getElementById('minutes').textContent = toSlavonic(m);
-            document.getElementById('seconds').textContent = toSlavonic(s);
+                // Обновляем каждый блок отдельно
+                document.getElementById('hours').innerHTML = toSlavonic(h);
+                document.getElementById('minutes').innerHTML = toSlavonic(m);
+                document.getElementById('seconds').innerHTML = toSlavonic(s);
+            } catch (e) {
+                console.error("Ошибка обновления времени:", e);
+            }
         }
 
-        // Плавный старт
+        // Запуск интервала
         setInterval(updateClock, 1000);
         updateClock();
     </script>
