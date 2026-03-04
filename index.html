@@ -1,23 +1,22 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="cu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Московское время (Церковнославянская цифирь)</title>
+    <title>Часомѣ́ръ Московскій</title>
     <style>
-        /* Подключаем шрифт Pochaevsk из репозитория проекта Slavonic */
+        /* Подключаем шрифт Fedorovsk - стандарт печатной книги */
         @font-face {
             font-family: 'Fedorovsk';
             src: url('https://cdn.jsdelivr.net/gh/slavonic/fedorovsk@master/Fedorovsk-Regular.ttf') format('truetype');
             font-display: swap;
-            
         }
 
         body {
-            background-color: #1a1a1a;
-            color: #d4af37; /* Золотистый цвет */
+            background-color: #0f0f0f;
+            background-image: radial-gradient(circle, #1a1a1a 0%, #050505 100%);
+            color: #e2c08d; 
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -25,75 +24,87 @@
             font-family: 'Times New Roman', serif;
         }
 
-        .clock-container {
+        .clock-card {
             text-align: center;
-            border: 2px solid #d4af37;
-            padding: 40px;
-            border-radius: 15px;
-            background: #262626;
-            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+            padding: 60px;
+            border: 1px solid rgba(226, 192, 141, 0.3);
+            background: rgba(20, 20, 20, 0.8);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(226, 192, 141, 0.05);
+            border-radius: 4px;
+            position: relative;
         }
+
+        /* Декоративные уголки */
+        .clock-card::before, .clock-card::after {
+            content: "♰";
+            position: absolute;
+            font-size: 20px;
+            opacity: 0.5;
+        }
+        .clock-card::before { top: 10px; left: 10px; }
+        .clock-card::after { bottom: 10px; right: 10px; }
 
         #clock {
-            font-family: 'Fedorovsk', serif; 
-            font-size: 85px; 
-            margin-bottom: 20px;
-            min-width: 450px;
+            font-family: 'Fedorovsk', serif;
+            font-size: 110px; /* Увеличили для солидности */
+            line-height: 1.2;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(226, 192, 141, 0.2);
+            letter-spacing: 5px;
         }
 
-        .label {
-            font-size: 18px;
+        .title {
+            font-size: 22px;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            opacity: 0.8;
+            letter-spacing: 4px;
+            color: #b38b59;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #b38b59;
+            display: inline-block;
+            padding-bottom: 5px;
         }
 
-        .moscow-label {
-            margin-top: 10px;
+        .footer {
+            font-size: 16px;
+            color: #7a6348;
+            margin-top: 20px;
             font-style: italic;
+        }
+
+        /* Разделитель (двоеточие) сделаем чуть меньше */
+        .sep {
+            font-size: 0.7em;
+            vertical-align: middle;
+            opacity: 0.6;
         }
     </style>
 </head>
 <body>
 
-    <div class="clock-container">
-        <div class="label">Текущее время в Москве</div>
-        <div id="clock">Загрузка...</div>
-        <div class="moscow-label">Москва, Третїй Римъ</div>
+    <div class="clock-card">
+        <div class="title">Часомѣ́ръ Московскій</div>
+        <div id="clock">...</div>
+        <div class="footer">Москва, Третїй Римъ</div>
     </div>
 
     <script>
-        // Маппинг церковнославянских букв-цифр
-        const units = {
-            1: 'а', 2: 'в', 3: 'г', 4: 'д', 5: 'е', 
-            6: 'ѕ', 7: 'з', 8: 'и', 9: 'ѳ'
-        };
-        const tens = {
-            10: 'і', 20: 'к', 30: 'л', 40: 'м', 50: 'н'
-        };
-        // Для часов и минут/секунд нам не нужны сотни, так как максимум 59
+        const units = { 1: 'а', 2: 'в', 3: 'г', 4: 'д', 5: 'е', 6: 'ѕ', 7: 'з', 8: 'и', 9: 'ѳ' };
+        const tens = { 10: 'і', 20: 'к', 30: 'л', 40: 'м', 50: 'н' };
 
-        /**
-         * Функция преобразования числа в церковнославянскую цифирь
-         */
         function toSlavonic(num) {
-            if (num === 0) return 'ѻ'; // Используем узкое "о" как заменитель нуля
-
+            if (num === 0) return 'ѻ'; // Для нуля используем "онъ"
             let res = '';
             
             if (num >= 11 && num <= 19) {
-                // Правило 11-19: единица + десять (і)
                 res = units[num % 10] + 'і';
             } else {
                 const t = Math.floor(num / 10) * 10;
                 const u = num % 10;
-                
                 if (t > 0) res += tens[t];
                 if (u > 0) res += units[u];
             }
 
-            // Добавляем Титло (U+0483)
-            // По правилам: если букв больше одной, титло ставится над второй с конца
+            // Титло: ставится над второй буквой с конца или над единственной
             if (res.length > 1) {
                 return res.slice(0, -1) + '\u0483' + res.slice(-1);
             } else {
@@ -102,33 +113,19 @@
         }
 
         function updateClock() {
-            // Получаем время в часовом поясе Москвы
             const now = new Date();
-            const options = {
-                timeZone: 'Europe/Moscow',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            };
-            
-            const formatter = new Intl.DateTimeFormat('ru-RU', options);
-            const parts = formatter.formatToParts(now);
+            const options = { timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            const parts = new Intl.DateTimeFormat('ru-RU', options).formatToParts(now);
             
             const h = parseInt(parts.find(p => p.type === 'hour').value);
             const m = parseInt(parts.find(p => p.type === 'minute').value);
             const s = parseInt(parts.find(p => p.type === 'second').value);
 
-            // Конвертируем каждую часть
-            const slavH = toSlavonic(h);
-            const slavM = toSlavonic(m);
-            const slavS = toSlavonic(s);
-
-            // Выводим на экран
-            document.getElementById('clock').innerHTML = `${slavH} : ${slavM} : ${slavS}`;
+            const sep = '<span class="sep">:</span>';
+            document.getElementById('clock').innerHTML = 
+                `${toSlavonic(h)} ${sep} ${toSlavonic(m)} ${sep} ${toSlavonic(s)}`;
         }
 
-        // Запуск часов
         setInterval(updateClock, 1000);
         updateClock();
     </script>
