@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Часомѣръ Московскій</title>
     <style>
-        /* Подключаем шрифт Fedorovsk */
+        /* Подключаем шрифт из корня репозитория */
         @font-face {
-            font-family: 'Fedorovsk';
+            font-family: 'FedorovskUnicode';
             src: url('FedorovskUnicode.ttf') format('truetype');
             font-display: swap;
         }
@@ -31,11 +31,12 @@
             border: 1px solid #4a3c28;
             background: rgba(15, 15, 15, 0.9);
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            width: 650px; /* Фиксированная ширина рамки */
+            width: 700px; /* Немного расширил из-за расстояния между буквами */
+            border-radius: 2px;
         }
 
         .title {
-            font-family: 'Fedorovsk', serif;
+            font-family: 'FedorovskUnicode', serif;
             font-size: 28px;
             color: #8a704a;
             margin-bottom: 20px;
@@ -47,31 +48,41 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Fedorovsk', serif;
+            font-family: 'FedorovskUnicode', serif;
             font-size: 100px;
-            height: 180px; /* Высота с запасом для высокого титло */
+            height: 160px; 
         }
 
         .segment {
-            width: 170px; /* Фиксированная ширина для значений времени */
+            width: 200px; /* Ширина увеличена для свободного расположения букв */
             text-align: center;
+            letter-spacing: 15px; /* Расстояние между буквами */
+            padding-left: 15px;   /* Компенсация letter-spacing для центровки */
+            position: relative;
         }
 
         .separator {
             width: 40px;
             text-align: center;
             color: #5c4b32;
-            padding-bottom: 20px; /* Визуальное выравнивание двоеточия */
+            padding-bottom: 15px;
+            font-size: 80px;
         }
 
-        /* Настройка высоты титло */
-        .titlo {
+        /* Настройка титло */
+        .titlo-container {
+            position: relative;
             display: inline-block;
-            transform: translateY(-18px); /* Поднимаем титло выше */
-            width: 0;
-            margin-left: -0.1em;
-            pointer-events: none;
+        }
+
+        .titlo-mark {
+            position: absolute;
+            left: 50%;
+            /* Регулировка высоты титло: чем меньше минус, тем ниже оно сидит */
+            transform: translateX(-50%) translateY(-8px); 
+            font-size: 0.8em;
             color: #e2c08d;
+            pointer-events: none;
         }
 
         .footer {
@@ -93,7 +104,7 @@
 <body>
 
     <div class="clock-card">
-        <div class="title">Часомѣръ Московскій</div>
+        <div class="title">Часомѣръ</div>
         <div class="ornament">☩</div>
         
         <div class="clock-display">
@@ -113,30 +124,38 @@
         const tens = { 10: 'і', 20: 'к', 30: 'л', 40: 'м', 50: 'н' };
 
         /**
-         * Конвертация числа в церковнославянскую буквенную систему
+         * Оборачивает букву в контейнер с титло
+         */
+        function withTitlo(char) {
+            return `<span class="titlo-container">${char}<span class="titlo-mark">\u0483</span></span>`;
+        }
+
+        /**
+         * Конвертация в славянскую цифирь с учетом новых правил верстки
          */
         function toSlavonic(num) {
-            let res = '';
-            const titloHtml = '<span class="titlo">\u0483</span>';
+            if (num === 0) return withTitlo('ѻ');
             
-            if (num === 0) {
-                res = 'ѻ'; // Используем "онъ" для нуля
-            } else if (num >= 11 && num <= 19) {
-                // Правило 11-19: единица на десять
-                res = units[num % 10] + 'і';
+            let char1 = '';
+            let char2 = '';
+            
+            if (num >= 11 && num <= 19) {
+                char1 = units[num % 10];
+                char2 = 'і';
             } else {
                 const t = Math.floor(num / 10) * 10;
                 const u = num % 10;
-                if (t > 0) res += tens[t];
-                if (u > 0) res += units[u];
+                if (t > 0) char1 = tens[t];
+                if (u > 0) char2 = units[u];
             }
 
-            // Логика постановки титло:
-            // Если букв несколько, титло обычно ставится над второй с конца.
-            if (res.length > 1) {
-                return res.slice(0, -1) + titloHtml + res.slice(-1);
+            // Логика постановки титло: 
+            // Если буква одна - над ней.
+            // Если две - по традиции над первой в паре (над десятком или над единицей в 11-19).
+            if (char1 && char2) {
+                return withTitlo(char1) + char2;
             } else {
-                return res + titloHtml;
+                return withTitlo(char1 || char2);
             }
         }
 
@@ -151,23 +170,19 @@
                     hour12: false 
                 };
                 
-                const formatter = new Intl.DateTimeFormat('ru-RU', options);
-                const parts = formatter.formatToParts(now);
-                
+                const parts = new Intl.DateTimeFormat('ru-RU', options).formatToParts(now);
                 const h = parseInt(parts.find(p => p.type === 'hour').value);
                 const m = parseInt(parts.find(p => p.type === 'minute').value);
                 const s = parseInt(parts.find(p => p.type === 'second').value);
 
-                // Обновляем каждый блок отдельно
                 document.getElementById('hours').innerHTML = toSlavonic(h);
                 document.getElementById('minutes').innerHTML = toSlavonic(m);
                 document.getElementById('seconds').innerHTML = toSlavonic(s);
             } catch (e) {
-                console.error("Ошибка обновления времени:", e);
+                console.error(e);
             }
         }
 
-        // Запуск интервала
         setInterval(updateClock, 1000);
         updateClock();
     </script>
