@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Московское время (Церковнославянская цифирь)</title>
+    <style>
+        /* Подключаем шрифт Pochaevsk из репозитория проекта Slavonic */
+        @font-face {
+            font-family: 'Pochaevsk';
+            src: url('https://cdn.jsdelivr.net/gh/slavonic/pochaevsk@master/Pochaevsk-Regular.ttf') format('truetype');
+            font-display: swap;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            color: #d4af37; /* Золотистый цвет */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Times New Roman', serif;
+        }
+
+        .clock-container {
+            text-align: center;
+            border: 2px solid #d4af37;
+            padding: 40px;
+            border-radius: 15px;
+            background: #262626;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+        }
+
+        #clock {
+            font-family: 'Pochaevsk', serif;
+            font-size: 80px;
+            margin-bottom: 20px;
+            min-width: 450px;
+        }
+
+        .label {
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.8;
+        }
+
+        .moscow-label {
+            margin-top: 10px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="clock-container">
+        <div class="label">Текущее время в Москве</div>
+        <div id="clock">Загрузка...</div>
+        <div class="moscow-label">Москва, Третїй Римъ</div>
+    </div>
+
+    <script>
+        // Маппинг церковнославянских букв-цифр
+        const units = {
+            1: 'а', 2: 'в', 3: 'г', 4: 'д', 5: 'е', 
+            6: 'ѕ', 7: 'з', 8: 'и', 9: 'ѳ'
+        };
+        const tens = {
+            10: 'і', 20: 'к', 30: 'л', 40: 'м', 50: 'н'
+        };
+        // Для часов и минут/секунд нам не нужны сотни, так как максимум 59
+
+        /**
+         * Функция преобразования числа в церковнославянскую цифирь
+         */
+        function toSlavonic(num) {
+            if (num === 0) return 'ѻ'; // Используем узкое "о" как заменитель нуля
+
+            let res = '';
+            
+            if (num >= 11 && num <= 19) {
+                // Правило 11-19: единица + десять (і)
+                res = units[num % 10] + 'і';
+            } else {
+                const t = Math.floor(num / 10) * 10;
+                const u = num % 10;
+                
+                if (t > 0) res += tens[t];
+                if (u > 0) res += units[u];
+            }
+
+            // Добавляем Титло (U+0483)
+            // По правилам: если букв больше одной, титло ставится над второй с конца
+            if (res.length > 1) {
+                return res.slice(0, -1) + '\u0483' + res.slice(-1);
+            } else {
+                return res + '\u0483';
+            }
+        }
+
+        function updateClock() {
+            // Получаем время в часовом поясе Москвы
+            const now = new Date();
+            const options = {
+                timeZone: 'Europe/Moscow',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            };
+            
+            const formatter = new Intl.DateTimeFormat('ru-RU', options);
+            const parts = formatter.formatToParts(now);
+            
+            const h = parseInt(parts.find(p => p.type === 'hour').value);
+            const m = parseInt(parts.find(p => p.type === 'minute').value);
+            const s = parseInt(parts.find(p => p.type === 'second').value);
+
+            // Конвертируем каждую часть
+            const slavH = toSlavonic(h);
+            const slavM = toSlavonic(m);
+            const slavS = toSlavonic(s);
+
+            // Выводим на экран
+            document.getElementById('clock').innerHTML = `${slavH} : ${slavM} : ${slavS}`;
+        }
+
+        // Запуск часов
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>
