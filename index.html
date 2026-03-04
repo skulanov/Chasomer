@@ -31,16 +31,16 @@
             border: 1px solid #4a3c28;
             background: rgba(15, 15, 15, 0.9);
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            width: 700px; /* Немного расширил из-за расстояния между буквами */
+            width: 750px; /* Оптимальная ширина для длинного заголовка */
             border-radius: 2px;
         }
 
         .title {
             font-family: 'FedorovskUnicode', serif;
-            font-size: 28px;
+            font-size: 26px;
             color: #8a704a;
             margin-bottom: 20px;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
             text-transform: uppercase;
         }
 
@@ -50,14 +50,14 @@
             align-items: center;
             font-family: 'FedorovskUnicode', serif;
             font-size: 100px;
-            height: 160px; 
+            height: 150px; 
         }
 
         .segment {
-            width: 200px; /* Ширина увеличена для свободного расположения букв */
+            width: 210px; 
             text-align: center;
             letter-spacing: 15px; /* Расстояние между буквами */
-            padding-left: 15px;   /* Компенсация letter-spacing для центровки */
+            padding-left: 15px;   /* Центровка */
             position: relative;
         }
 
@@ -66,10 +66,11 @@
             text-align: center;
             color: #5c4b32;
             padding-bottom: 15px;
-            font-size: 80px;
+            font-size: 70px;
+            opacity: 0.5;
         }
 
-        /* Настройка титло */
+        /* Настройка титло (максимально близко к букве) */
         .titlo-container {
             position: relative;
             display: inline-block;
@@ -78,20 +79,21 @@
         .titlo-mark {
             position: absolute;
             left: 50%;
-            /* Регулировка высоты титло: чем меньше минус, тем ниже оно сидит */
-            transform: translateX(-50%) translateY(-8px); 
-            font-size: 0.8em;
+            /* translateY(-3px) делает посадку титло очень плотной, как в печати */
+            transform: translateX(-50%) translateY(-3px); 
+            font-size: 0.85em;
             color: #e2c08d;
             pointer-events: none;
         }
 
         .footer {
-            margin-top: 25px;
-            font-size: 13px;
+            margin-top: 30px;
+            font-size: 12px;
             color: #5c4b32;
             letter-spacing: 2px;
             font-family: Arial, sans-serif;
-            opacity: 0.7;
+            text-transform: none;
+            opacity: 0.6;
         }
 
         .ornament {
@@ -104,7 +106,7 @@
 <body>
 
     <div class="clock-card">
-        <div class="title">Часомѣръ</div>
+        <div class="title">Часомѣръ Московскій</div>
         <div class="ornament">☩</div>
         
         <div class="clock-display">
@@ -124,14 +126,15 @@
         const tens = { 10: 'і', 20: 'к', 30: 'л', 40: 'м', 50: 'н' };
 
         /**
-         * Оборачивает букву в контейнер с титло
+         * Оборачивает символ в контейнер с титло
          */
         function withTitlo(char) {
+            if (!char) return '';
             return `<span class="titlo-container">${char}<span class="titlo-mark">\u0483</span></span>`;
         }
 
         /**
-         * Конвертация в славянскую цифирь с учетом новых правил верстки
+         * Конвертация в славянскую цифирь
          */
         function toSlavonic(num) {
             if (num === 0) return withTitlo('ѻ');
@@ -140,6 +143,7 @@
             let char2 = '';
             
             if (num >= 11 && num <= 19) {
+                // Правило 11-19: единица + і
                 char1 = units[num % 10];
                 char2 = 'і';
             } else {
@@ -149,9 +153,7 @@
                 if (u > 0) char2 = units[u];
             }
 
-            // Логика постановки титло: 
-            // Если буква одна - над ней.
-            // Если две - по традиции над первой в паре (над десятком или над единицей в 11-19).
+            // Ставим титло над первой буквой (традиция для двузначных чисел)
             if (char1 && char2) {
                 return withTitlo(char1) + char2;
             } else {
@@ -179,10 +181,11 @@
                 document.getElementById('minutes').innerHTML = toSlavonic(m);
                 document.getElementById('seconds').innerHTML = toSlavonic(s);
             } catch (e) {
-                console.error(e);
+                console.error("Ошибка времени:", e);
             }
         }
 
+        // Запуск
         setInterval(updateClock, 1000);
         updateClock();
     </script>
